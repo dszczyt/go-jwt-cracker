@@ -43,7 +43,9 @@ func JWTFromString(s string) (*JWT, error) {
 
 func (jwt *JWT) isSignedWithKey(key []byte) bool {
 	mac := hmac.New(sha256.New, key)
-	mac.Write([]byte(jwt.signedContent))
+	if err := mac.Write([]byte(jwt.signedContent)); err != nil {
+		panic(err)
+	}
 	expectedMac := mac.Sum(nil)
 	return hmac.Equal(expectedMac, jwt.signature)
 }
@@ -74,7 +76,7 @@ func main() {
 
 	result := make(chan string)
 	defer close(result)
-	keys := make(chan []byte, 0)
+	keys := make(chan []byte)
 
 	jwt, jwtErr := JWTFromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.cAOIAifu3fykvhkHpbuhbvtH807-Z2rI1FS3vX1XMjE")
 	if jwtErr != nil {
